@@ -3,13 +3,16 @@
 require 'gosu'
 
 
-#AI Test 2
+#AI Test
 class Pong < Gosu::Window
 	def initialize(logic)
 		super 200, 300
 		self.caption = "Pong AI Training"
 
 		@logic = logic
+		
+		@user1_points = 0
+		@user2_points = 0
 
 		@user1_x = width/2-15
 		@user1_y = height-10
@@ -22,6 +25,12 @@ class Pong < Gosu::Window
 
 		@user2_left = false
 		@user2_right = false
+	
+		@radius = 5	
+		@ball_x = width/2-3
+		@ball_y = height/2-3
+		@angle = 90
+		
 	end
 
 	def update
@@ -40,8 +49,30 @@ class Pong < Gosu::Window
 	def draw
 		Gosu.draw_rect(@user1_x,@user1_y,30,5,Gosu::Color::WHITE)
 		Gosu.draw_rect(@user2_x,@user2_y,30,5,Gosu::Color::RED) 
+		draw_ball(@ball_x,@ball_y)
 	end
 
+	def draw_ball(x,y)
+		color = Gosu::Color::GREEN
+		radius = 6
+		steps = 30
+		step_angle = (2 * Math::PI) / steps
+
+		center_x = x
+		center_y = y
+
+		steps.times do |i|
+		  	angle1 = i * step_angle
+		  	angle2 = (i + 1) * step_angle
+
+		 	x1 = x + radius * Math.cos(angle1)
+		 	y1 = y + radius * Math.sin(angle1)
+			x2 = x + radius * Math.cos(angle2)
+			y2 = y + radius * Math.sin(angle2)
+		
+			draw_triangle(center_x, center_y, color, x1, y1, color, x2, y2, color)
+		end
+	end
 
 	def move_player(user_left, user_right, user_x)
 		if user_left && !user_right
@@ -55,8 +86,33 @@ class Pong < Gosu::Window
 	def move
 		@user1_x = move_player(@user1_left, @user1_right, @user1_x)
 		@user2_x = move_player(@user2_left, @user2_right, @user2_x)
+
+		@ball_x += 2 + Math.cos(Math::PI / 180 * @angle)
+		@ball_y += 2 + Math.sin(Math::PI / 180 * @angle)
+
+		if @ball_x - @radius < 0 || @ball_x + @radius > width
+		  @angle = 180 - @angle
+		end
+
+		if @ball_y - @radius < @user1_y+10 || @ball_y + @radius > @user2_y-10
+			@angle = 360 - @angle
+		elsif @ball_y - @radius < 0
+			@user1_points += 1
+			puts "User1: #{@user1_points}"
+			restart
+		elsif @ball_y + @radius > height
+			@user2_points += 1
+			puts "User2: #{@user2_points}"
+			restart
+		end
 	end
 
+
+	def restart
+		@ball_x = width/2-3
+		@ball_y = height/2-3
+		@angle = 70	
+	end
 
 	def button_down(event)
 		case event
