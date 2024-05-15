@@ -10,6 +10,9 @@ class Pong < Gosu::Window
 		self.caption = "Pong AI Training"
 
 		@logic = logic
+	
+		@paddle_width =30
+		@paddle_height=5
 		
 		@user1_points = 0
 		@user2_points = 0
@@ -26,11 +29,11 @@ class Pong < Gosu::Window
 		@user2_left = false
 		@user2_right = false
 	
-		@radius = 5	
+		@radius = 6	
 		@ball_x = width/2-3
 		@ball_y = height/2-3
-		@angle = 90
-		
+		@angle = 70
+		@intensity = 1	
 	end
 
 	def update
@@ -87,16 +90,26 @@ class Pong < Gosu::Window
 		@user1_x = move_player(@user1_left, @user1_right, @user1_x)
 		@user2_x = move_player(@user2_left, @user2_right, @user2_x)
 
-		@ball_x += 2 + Math.cos(Math::PI / 180 * @angle)
-		@ball_y += 2 + Math.sin(Math::PI / 180 * @angle)
+		@ball_x += Math.cos(Math::PI / 180 * @angle)*2*@intensity
+		@ball_y += Math.sin(Math::PI / 180 * @angle)*2*@intensity
 
 		if @ball_x - @radius < 0 || @ball_x + @radius > width
-		  @angle = 180 - @angle
+			@angle = 180 - @angle
 		end
-
-		if @ball_y - @radius < @user1_y+10 || @ball_y + @radius > @user2_y-10
+=begin
+		if @ball_y - @radius < 0 || @ball_y + @radius > height
 			@angle = 360 - @angle
-		elsif @ball_y - @radius < 0
+		end
+=end
+
+		if hit_paddle(:user1)
+			reflect(:user1)
+		elsif hit_paddle(:user2)
+			reflect(:user2)
+		end	
+
+
+		if @ball_y - @radius < 0
 			@user1_points += 1
 			puts "User1: #{@user1_points}"
 			restart
@@ -108,10 +121,46 @@ class Pong < Gosu::Window
 	end
 
 
+	def	reflect(user)
+		case user
+		when :user1
+			middle = @user1_x+@paddle_width/2
+			if @ball_x >= middle
+				@intensity = (@ball_x-middle)/4.0
+
+				if @angle<90
+					@angle=360-@angle
+				else
+					@angle=180+@angle
+				end
+			else
+				@intensity =(middle-@ball_x)/4.0
+				if @angle<90
+					@angle=180+@angle
+				else
+					@angle= 360-@angle
+				end
+			end
+
+		when :user2
+			@angle = 360-@angle
+		end	
+	end
+
+	def hit_paddle(user)
+		case user
+		when :user1
+			return @ball_x >= @user1_x && @ball_x < @user1_x+@paddle_width && @ball_y+@radius >= @user1_y
+		when :user2
+			return @ball_x >= @user2_x && @ball_x < @user2_x+@paddle_width && @ball_y-@radius <= @user2_y+@paddle_height
+		end
+	end
+
+
 	def restart
 		@ball_x = width/2-3
 		@ball_y = height/2-3
-		@angle = 70	
+		@angle = 95	
 	end
 
 	def button_down(event)
