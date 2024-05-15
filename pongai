@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+
+require 'gosu'
+
+
+
+class Pong < Gosu::Window
+	def initialize(logic)
+		super 200, 300
+		self.caption = "Pong AI Training"
+
+		@logic = logic
+
+		@user1_x = width/2-15
+		@user1_y = height-10
+		
+		@user1_left = false
+		@user1_right = false
+
+		@user2_x = width/2-15
+		@user2_y = 5
+
+		@user2_left = false
+		@user2_right = false
+	end
+
+	def update
+		case @logic
+		when :two
+			move	
+		when :single
+
+		when :ai
+
+		else
+			raise "Undefined logic: #{@logic}"
+		end  
+	end
+
+	def draw
+		Gosu.draw_rect(@user1_x,@user1_y,30,5,Gosu::Color::WHITE)
+		Gosu.draw_rect(@user2_x,@user2_y,30,5,Gosu::Color::RED) 
+	end
+
+
+	def move_player(user_left, user_right, user_x)
+		if user_left && !user_right
+			user_x -= 2 unless user_x <= 0
+		elsif !user_left && user_right
+			user_x += 2 unless user_x >= width - 30
+		end
+		user_x
+	end
+
+	def move
+		@user1_x = move_player(@user1_left, @user1_right, @user1_x)
+		@user2_x = move_player(@user2_left, @user2_right, @user2_x)
+	end
+
+
+	def button_down(event)
+		case event
+		when Gosu::KB_LEFT	
+			@user1_left = true
+		when Gosu::KB_RIGHT
+			@user1_right = true	
+		when Gosu::KB_A
+			@user2_left = true
+		when Gosu::KB_S
+			@user2_right = true
+		end
+	end
+
+	def button_up(event)
+		case event
+		when Gosu::KB_LEFT
+			@user1_left = false
+		when Gosu::KB_RIGHT
+			@user1_right = false
+		when Gosu::KB_A
+			@user2_left = false
+		when Gosu::KB_S
+			@user2_right = false
+		end
+	end
+
+end
+
+
+
+
+
+w = Pong.new(:two)
+w.show
+
+
+
+
+
+
+####
+
+
