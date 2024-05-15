@@ -3,7 +3,7 @@
 require 'gosu'
 
 
-
+#AI Test
 class Pong < Gosu::Window
 	def initialize(logic)
 		super 200, 300
