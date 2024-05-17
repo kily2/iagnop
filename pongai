@@ -35,7 +35,7 @@ class Pong < Gosu::Window
 		@surface_x = nil
 		@surface_y = nil
 		@angle = 70
-		@intensity = 2
+		@intensity = 3
 		@scale = 0.5	
 	end
 
@@ -95,9 +95,8 @@ class Pong < Gosu::Window
 
 		@ball_x += Math.cos(Math::PI / 180 * @angle)*@intensity
 		@ball_y += Math.sin(Math::PI / 180 * @angle)*@intensity
-
-		@intensity = (1.0 - @scale)*3.0	
-		
+	
+		#side wall reflection	
 		if @ball_x - @radius < 0 || @ball_x + @radius > width
 			@angle = 180 - @angle
 		end
@@ -107,6 +106,7 @@ class Pong < Gosu::Window
 			reflect(:user1)
 		elsif hit_paddle(:user2)
 			reflect(:user2)
+
 		end	
 
 		
@@ -123,26 +123,38 @@ class Pong < Gosu::Window
 
 
 	def	reflect(user)
+		v=0
 		case user
 		when :user1
-			@scale = (@ball_x-@user1_x).abs / (@paddle_width / 2)
+			v = @ball_x-@user1_x-@paddle_width/2
+			@scale = 1.0 - v.abs / (@paddle_width / 2)
 		when :user2
-			@scale = (@ball_x-@user2_x).abs / (@paddle_width / 2)
+			v = @ball_x-@user2_x-@paddle_width/2
+			@scale = 1.0 - v.abs / (@paddle_width / 2)
 		end
-		@angle = 180+(@angle*@scale)
+
+		if v < 0
+			@angle = (180+@scale*@angle)%360
+		else
+			@angle = (360-@scale*@angle)%360
+		end
+
+		@intensity = 2.0+(1.0-@scale)*3.0
 
 		puts "#{@scale} : scale"
 		puts "#{@angle} : angle"
 	end
 
 	def hit_paddle(user)	
-		@surface_x = @ball_x + @radius * Math.cos(Math::PI / 180*@angle)
+		#@surface_x = @ball_x + @radius * Math.cos(Math::PI / 180*@angle)
 		@surface_y = @ball_y + @radius * Math.sin(Math::PI / 180*@angle)
+		
+		added_pad = 10 #nicer when hittin edges
 		case user
 		when :user1
-			return @surface_x >= @user1_x && @surface_x < @user1_x+@paddle_width && @surface_y >= @user1_y
+			return @ball_x >= @user1_x-added_pad && @ball_x < @user1_x+@paddle_width+added_pad && @surface_y >= @user1_y
 		when :user2
-			return @surface_x >= @user2_x && @surface_x < @user2_x+@paddle_width && @surface_y <= @user2_y+@paddle_height
+			return @ball_x >= @user2_x-added_pad && @ball_x < @user2_x+@paddle_width+added_pad && @surface_y <= @user2_y+@paddle_height
 		end
 	end
 
@@ -151,6 +163,7 @@ class Pong < Gosu::Window
 		@ball_x = width/2-3
 		@ball_y = height/2-3
 		@angle = 70
+		@intensity = 2
 	end
 
 	def button_down(event)
@@ -184,10 +197,12 @@ end
 
 
 
-
-w = Pong.new(:two)
-w.show
-
+begin
+	w = Pong.new(:two)
+	w.show
+rescue => e
+	puts e.message
+end 
 
 
 
