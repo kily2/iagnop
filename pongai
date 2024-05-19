@@ -10,7 +10,8 @@ class Pong < Gosu::Window
 		self.caption = "Pong AI Training"
 
 		@logic = logic
-	
+		@speed = 1.5
+
 		@paddle_width =30
 		@paddle_height=5
 		
@@ -82,9 +83,9 @@ class Pong < Gosu::Window
 
 	def move_player(user_left, user_right, user_x)
 		if user_left && !user_right
-			user_x -= 2 unless user_x <= 0
+			user_x -= 2*@speed unless user_x <= 0
 		elsif !user_left && user_right
-			user_x += 2 unless user_x >= width - @paddle_width
+			user_x += 2*@speed unless user_x >= width - @paddle_width
 		end
 		user_x
 	end
@@ -147,14 +148,14 @@ class Pong < Gosu::Window
 
 	def hit_paddle(user)	
 		#@surface_x = @ball_x + @radius * Math.cos(Math::PI / 180*@angle)
-		@surface_y = @ball_y + @radius * Math.sin(Math::PI / 180*@angle)
+		#@surface_y = @ball_y + @radius * Math.sin(Math::PI / 180*@angle)
 		
-		added_pad = 10 #nicer when hittin edges
+		pad = 10 #nicer when hittin edges
 		case user
 		when :user1
-			return @ball_x >= @user1_x-added_pad && @ball_x < @user1_x+@paddle_width+added_pad && @surface_y >= @user1_y
+			return @ball_x >= (@user1_x-pad) && @ball_x < (@user1_x+@paddle_width+pad) && @ball_y+@radius >= @user1_y
 		when :user2
-			return @ball_x >= @user2_x-added_pad && @ball_x < @user2_x+@paddle_width+added_pad && @surface_y <= @user2_y+@paddle_height
+			return @ball_x >= (@user2_x-pad) && @ball_x < (@user2_x+@paddle_width+pad) && @ball_y-@radius <= @user2_y+@paddle_height
 		end
 	end
 
